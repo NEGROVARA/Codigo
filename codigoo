@@ -1,0 +1,143 @@
+-- 1. Crear la base de datos PincelArt
+CREATE DATABASE IF NOT EXISTS PincelArt;
+
+-- 2. Seleccionar la base de datos
+USE PincelArt;
+
+-- 3. Crear la tabla Proveedores
+CREATE TABLE IF NOT EXISTS Proveedores (
+    proveedor_id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    pais VARCHAR(50),
+    telefono VARCHAR(20)
+);
+
+-- 4. Crear la tabla Productos
+CREATE TABLE IF NOT EXISTS Productos (
+    producto_id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    precio DECIMAL(10, 2),
+    stock INT,
+    proveedor_id INT,
+    FOREIGN KEY (proveedor_id) REFERENCES Proveedores(proveedor_id)
+);
+
+-- 5. Crear la tabla Clientes
+CREATE TABLE IF NOT EXISTS Clientes (
+    cliente_id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    correo VARCHAR(100),
+    telefono VARCHAR(20)
+);
+
+-- 6. Crear la tabla Ventas
+CREATE TABLE IF NOT EXISTS Ventas (
+    venta_id INT AUTO_INCREMENT PRIMARY KEY,
+    fecha DATE,
+    cliente_id INT,
+    producto_id INT,
+    cantidad INT,
+    FOREIGN KEY (cliente_id) REFERENCES Clientes(cliente_id),
+    FOREIGN KEY (producto_id) REFERENCES Productos(producto_id)
+);
+
+-- 7. Insertar datos en la tabla Proveedores
+INSERT INTO Proveedores (nombre, pais, telefono)
+VALUES 
+('Pinturas Acme', 'España', '+34 123 456 789'),
+('ColorExpress', 'México', '+52 987 654 321'),
+('TinteArte', 'Italia', '+39 321 654 987');
+
+-- 8. Insertar datos en la tabla Productos
+INSERT INTO Productos (nombre, precio, stock, proveedor_id)
+VALUES 
+('Pintura acrílica', 25.00, 100, 1),
+('Esmalte al agua', 30.50, 50, 2),
+('Barniz brillante', 45.00, 20, 3),
+('Pintura para interiores', 60.00, 75, 1);
+
+-- 9. Insertar datos en la tabla Clientes
+INSERT INTO Clientes (nombre, correo, telefono)
+VALUES 
+('Carlos López', 'carlos.lopez@mail.com', '+34 600 123 456'),
+('Ana Martínez', 'ana.martinez@mail.com', '+52 700 987 654'),
+('John Doe', 'john.doe@mail.com', '+1 900 654 321');
+
+-- 10. Insertar datos en la tabla Ventas
+INSERT INTO Ventas (fecha, cliente_id, producto_id, cantidad)
+VALUES 
+('2023-01-15', 1, 1, 10),
+('2023-02-10', 2, 2, 5),
+('2023-03-05', 3, 3, 3),
+('2023-04-20', 1, 4, 2);
+
+-- 11. Consultas en lenguaje natural y SQL
+
+-- 1. Obtener todos los productos disponibles.
+SELECT * FROM Productos;
+
+-- 2. Mostrar todos los proveedores y su país.
+SELECT nombre, pais FROM Proveedores;
+
+-- 3. Mostrar los productos vendidos junto con el nombre del cliente que los compró.
+SELECT Productos.nombre AS producto, Clientes.nombre AS cliente
+FROM Ventas
+JOIN Productos ON Ventas.producto_id = Productos.producto_id
+JOIN Clientes ON Ventas.cliente_id = Clientes.cliente_id;
+
+-- 4. Obtener las ventas realizadas en 2023.
+SELECT * FROM Ventas WHERE YEAR(fecha) = 2023;
+
+-- 5. Obtener el total de ventas por cliente.
+SELECT Clientes.nombre, SUM(Productos.precio * Ventas.cantidad) AS total_gastado
+FROM Ventas
+JOIN Clientes ON Ventas.cliente_id = Clientes.cliente_id
+JOIN Productos ON Ventas.producto_id = Productos.producto_id
+GROUP BY Clientes.nombre;
+
+-- 6. Mostrar el stock de cada producto junto con el nombre del proveedor.
+SELECT Productos.nombre, Productos.stock, Proveedores.nombre AS proveedor
+FROM Productos
+JOIN Proveedores ON Productos.proveedor_id = Proveedores.proveedor_id;
+
+-- 7. Listar todos los productos vendidos.
+SELECT DISTINCT Productos.nombre 
+FROM Ventas
+JOIN Productos ON Ventas.producto_id = Productos.producto_id;
+
+-- 8. Obtener los clientes que compraron productos de 'Pinturas Acme'.
+SELECT Clientes.nombre 
+FROM Ventas
+JOIN Clientes ON Ventas.cliente_id = Clientes.cliente_id
+JOIN Productos ON Ventas.producto_id = Productos.producto_id
+JOIN Proveedores ON Productos.proveedor_id = Proveedores.proveedor_id
+WHERE Proveedores.nombre = 'Pinturas Acme';
+
+-- 9. Mostrar los productos que no han sido vendidos.
+SELECT * FROM Productos WHERE producto_id NOT IN (SELECT producto_id FROM Ventas);
+
+-- 10. Obtener el valor total de las ventas.
+SELECT SUM(Productos.precio * Ventas.cantidad) AS total_ventas
+FROM Ventas
+JOIN Productos ON Ventas.producto_id = Productos.producto_id;
+
+-- 11. Mostrar los productos cuyo stock sea menor a 50 unidades.
+SELECT * FROM Productos WHERE stock < 50;
+
+-- 12. Obtener el precio promedio de los productos.
+SELECT AVG(precio) AS precio_promedio FROM Productos;
+
+-- 13. Listar las ventas ordenadas por fecha de manera descendente.
+SELECT * FROM Ventas ORDER BY fecha DESC;
+
+-- 14. Mostrar los 3 clientes que más han gastado en total.
+SELECT Clientes.nombre, SUM(Productos.precio * Ventas.cantidad) AS total_gastado
+FROM Ventas
+JOIN Clientes ON Ventas.cliente_id = Clientes.cliente_id
+JOIN Productos ON Ventas.producto_id = Productos.producto_id
+GROUP BY Clientes.nombre
+ORDER BY total_gastado DESC
+LIMIT 3;
+
+-- 15. Mostrar los productos cuyo precio sea mayor a 40 euros.
+SELECT * FROM Productos WHERE precio > 40;
